@@ -1,6 +1,9 @@
 # layout
 
-TODO: Write a description here
+This is a constraint based layout framework. Or more simply put, this generates the measurements for a visual layout which could then be used for:
+
+* Positioning things on a PDF
+* Drawing objects in a UI toolkit
 
 ## Installation
 
@@ -9,7 +12,7 @@ TODO: Write a description here
    ```yaml
    dependencies:
      layout:
-       github: your-github-user/layout
+       github: da1nerd/layout.cr
    ```
 
 2. Run `shards install`
@@ -28,7 +31,7 @@ TODO: Write development instructions here
 
 ## Contributing
 
-1. Fork it (<https://github.com/your-github-user/layout/fork>)
+1. Fork it (<https://github.com/da1nerd/layout.cr/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
@@ -36,4 +39,4 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [your-name-here](https://github.com/your-github-user) - creator and maintainer
+- [Joel Lonbeck](https://github.com/da1nerd) - creator and maintainer
