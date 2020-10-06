@@ -26,4 +26,22 @@ describe Layout do
     b.x.value.should eq(0)
     b.y.value.should eq(0)
   end
+
+  it "constrains a simple block hierarchy" do
+    b1 = Layout::Block.new
+    b1.width.value = 100f64
+    b1.height.value = 300f64
+    b1.x.value = 0f64
+    b1.y.value = 0f64
+
+    b2 = Layout::Block.new
+    b2.height.value = 50f64
+
+    b3 = Layout::Block.new
+
+    b1.children = [b2, b3]
+
+    system = Kiwi::Solver.new
+    Layout.solve(b1, system)
+  end
 end

@@ -45,6 +45,7 @@ module Layout
     @children : Array(Block)
     @label : String
     getter label, children, layout_direction, id
+    property children
 
     def initialize
       initialize(Layout::Direction::COLUMN, "block")
