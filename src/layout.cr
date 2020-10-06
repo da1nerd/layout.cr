@@ -65,9 +65,9 @@ module Layout
     solver.update_variables
   end
 
-  macro constrain(constraint)
-    {% data = constraint.stringify.split %}
-    {{ data[0].id }}.variable {{ data[1].id }} {{ data[2].id }}.variable
+  # Converts a `Primitive` logical comparison to a `Kiwi::Constraint`
+  macro constrain(data)
+    {{ data.stringify.gsub(/\b(x|y|width|height)(?!\.)/, "\\0.variable").id }}
   end
 
   # Loads a block's constraints into the solver
@@ -88,7 +88,46 @@ module Layout
 
       # baseline constraints
       solver.add_constraint constrain(child.x >= block.x)
-      # solver.add_constraint
+      solver.add_constraint constrain(child.y >= block.y)
+      solver.add_constraint constrain(child.height <= block.height)
+      solver.add_constraint constrain(child.width <= block.width)
+
+      # layout constraints
+      if block.layout_direction === Direction::COLUMN
+        solver.add_constraint constrain(child.x == block.x)
+        solver.add_constraint constrain(child.width == block.width)
+        solver.add_constraint constrain(child.y >= block.y)
+        if child.height.constant == false
+          # TODO: maximize the value of child.height
+        end
+        if sibling
+          solver.add_constraint constrain(child.y == sibling.y + sibling.height)
+        else
+          # this is the first child
+          solver.add_constraint constrain(child.y == block.y)
+        end
+        if is_last
+          solver.add_constraint constrain(child.y + child.height == block.y + block.height)
+        end
+      elsif block.layout_direction === Direction::COLUMN
+        solver.add_constraint constrain(child.y == block.y)
+        solver.add_constraint constrain(child.height == block.height)
+        solver.add_constraint constrain(child.x >= block.x)
+        if child.width.constant == false
+          # TODO: maximize the value of child.width
+        end
+        if sibling
+          solver.add_constraint constrain(child.x == sibling.x + sibling.width)
+        else
+          # this is the first child
+          solver.add_constraint constrain(child.x == block.x)
+        end
+        if is_last
+          solver.add_constraint constrain(child.x + child.width == block.x + block.width)
+        end
+      else
+        raise "Update you're code man!"
+      end
     end
   end
 
