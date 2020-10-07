@@ -1,6 +1,7 @@
 require "kiwi"
 require "uuid"
 
+# A constraint based layout framework so you can draw stuff with ease.
 module Layout
   VERSION = "0.1.0"
   extend self
@@ -35,6 +36,8 @@ module Layout
     end
   end
 
+  # A light wrapp around some primitive stuff.
+  # This may end up being merged into `Block`.
   module Primitives
     @width : Primitive
     @height : Primitive
@@ -80,12 +83,24 @@ module Layout
   end
 
   # Solves all of the `Primitive` values of a *block* and all of it's children.
+  def solve(block : Block)
+    solver = Kiwi::Solver.new
+    solve(block, solver)
+  end
+
+  # :ditto:
   def solve(block : Block, solver : Kiwi::Solver)
     load_block_constraints block, solver
     solver.update_variables
   end
 
   # Provides a convenient DLS that converts a `Primitive` expression into a `Kiwi::Constraint`
+  #
+  # ## Example
+  #
+  # ```
+  # constrain block1.x >= block2.x
+  # ```
   macro constrain(data)
     {{ data.stringify.gsub(/\b(x|y|width|height)(?!\.)/, "\\0.variable").id }}
   end

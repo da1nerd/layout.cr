@@ -28,29 +28,29 @@ describe Layout do
   end
 
   it "constrains a simple block hierarchy" do
-    b1 = Layout::Block.new
-    b1.width = 100f64
-    b1.height = 300f64
-    b1.x = 0f64
-    b1.y = 0f64
+    screen = Layout::Block.new
+    screen.width = 100f64
+    screen.height = 300f64
+    screen.x = 0f64
+    screen.y = 0f64
 
-    b2 = Layout::Block.new
-    b2.height = 50f64
+    top_block = Layout::Block.new
+    top_block.height = 50f64
 
-    b3 = Layout::Block.new
+    bottom_block = Layout::Block.new
 
-    b1.children = [b2, b3]
+    screen.children = [top_block, bottom_block]
 
-    solver = Kiwi::Solver.new
-    Layout.solve(b1, solver)
+    Layout.solve(screen)
 
-    b2.width.value.should eq(100f64)
-    b2.x.value.should eq(0f64)
-    b2.y.value.should eq(0f64)
+    top_block.width.value.should eq(100f64)
+    top_block.x.value.should eq(0f64)
+    top_block.y.value.should eq(0f64)
 
-    b3.width.value.should eq(100f64)
-    b3.x.value.should eq(0f64)
-    b3.y.value.should eq(50f64)
+    bottom_block.width.value.should eq(100f64)
+    bottom_block.height.value.should eq(250f64)
+    bottom_block.x.value.should eq(0f64)
+    bottom_block.y.value.should eq(50f64)
   end
 
   it "constrains a complex block hierarchy" do
