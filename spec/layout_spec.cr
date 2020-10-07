@@ -43,5 +43,13 @@ describe Layout do
 
     system = Kiwi::Solver.new
     Layout.solve(b1, system)
+
+    b2.width.value.should eq(100f64)
+    b2.x.value.should eq(0f64)
+    b2.y.value.should eq(0f64)
+
+    b3.width.value.should eq(100f64)
+    b3.x.value.should eq(0f64)
+    b3.y.value.should eq(50f64)
   end
 end
