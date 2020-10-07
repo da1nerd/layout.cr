@@ -9,11 +9,11 @@ This is a constraint based layout framework. Or more simply put, this generates 
 
 1. Add the dependency to your `shard.yml`:
 
-   ```yaml
-   dependencies:
-     layout:
-       github: da1nerd/layout.cr
-   ```
+```yaml
+dependencies:
+  layout:
+    github: da1nerd/layout.cr
+```
 
 2. Run `shards install`
 
@@ -21,9 +21,25 @@ This is a constraint based layout framework. Or more simply put, this generates 
 
 ```crystal
 require "layout"
-```
 
-TODO: Write usage instructions here
+screen = Layout::Block.new
+screen.width = 100f64
+screen.height = 300f64
+screen.x = 0f64
+screen.y = 0f64
+
+top_block = Layout::Block.new
+top_block.height = 50f64
+
+bottom_block = Layout::Block.new
+
+screen.children = [top_block, bottom_block]
+
+Layout.solve(screen)
+
+# go use the calculated dimensions!
+bottom_block.height.value # => 250f64
+```
 
 ## Development
 
