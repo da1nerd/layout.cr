@@ -2,7 +2,7 @@ name: layout
 version: 0.1.0
 
 authors:
-  - your-name-here <your-email-here>
+  - Joel Lonbeck <joel@neutrinographics.com>
 
 crystal: 0.35.1
 
@@ -11,3 +11,4 @@ license: MIT
 dependencies:
   kiwi:
     github: neutrinog/kiwi-crystal
+    version: 0.2.1
