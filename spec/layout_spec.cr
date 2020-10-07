@@ -29,13 +29,13 @@ describe Layout do
 
   it "constrains a simple block hierarchy" do
     screen = Layout::Block.new
-    screen.width = 100f64
+    screen.width = 300f64
     screen.height = 300f64
     screen.x = 0f64
     screen.y = 0f64
 
     top_block = Layout::Block.new
-    top_block.height = 50f64
+    top_block.height = 100f64
 
     bottom_block = Layout::Block.new
 
@@ -43,14 +43,14 @@ describe Layout do
 
     Layout.solve(screen)
 
-    top_block.width.value.should eq(100f64)
+    top_block.width.value.should eq(300f64)
     top_block.x.value.should eq(0f64)
     top_block.y.value.should eq(0f64)
 
-    bottom_block.width.value.should eq(100f64)
-    bottom_block.height.value.should eq(250f64)
+    bottom_block.width.value.should eq(300f64)
+    bottom_block.height.value.should eq(200f64)
     bottom_block.x.value.should eq(0f64)
-    bottom_block.y.value.should eq(50f64)
+    bottom_block.y.value.should eq(100f64)
   end
 
   it "constrains a complex block hierarchy" do
