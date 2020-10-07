@@ -29,20 +29,20 @@ describe Layout do
 
   it "constrains a simple block hierarchy" do
     b1 = Layout::Block.new
-    b1.width.value = 100f64
-    b1.height.value = 300f64
-    b1.x.value = 0f64
-    b1.y.value = 0f64
+    b1.width = 100f64
+    b1.height = 300f64
+    b1.x = 0f64
+    b1.y = 0f64
 
     b2 = Layout::Block.new
-    b2.height.value = 50f64
+    b2.height = 50f64
 
     b3 = Layout::Block.new
 
     b1.children = [b2, b3]
 
-    system = Kiwi::Solver.new
-    Layout.solve(b1, system)
+    solver = Kiwi::Solver.new
+    Layout.solve(b1, solver)
 
     b2.width.value.should eq(100f64)
     b2.x.value.should eq(0f64)
@@ -51,5 +51,62 @@ describe Layout do
     b3.width.value.should eq(100f64)
     b3.x.value.should eq(0f64)
     b3.y.value.should eq(50f64)
+  end
+
+  it "constrains a complex block hierarchy" do
+    page = Layout::Block.new
+    page.width = 200f64
+    page.height = 300f64
+    page.x = 0f64
+    page.y = 0f64
+    header = Layout::Block.new
+    header.height = 10f64
+    body = Layout::Block.new
+    ancestors = Layout::Block.new
+    ancestors.height = 10f64
+    body_content = Layout::Block.new(Layout::Direction::ROW)
+    leader_groups = Layout::Block.new
+    leader_groups.width = 30f64
+    generations = Layout::Block.new
+    generations.width = 10f64
+    graph = Layout::Block.new
+    body_content.children = [
+      leader_groups,
+      generations,
+      graph,
+    ]
+    body.children = [
+      ancestors,
+      body_content,
+    ]
+    metrics = Layout::Block.new
+    metrics.height = 50f64
+    page.children = [
+      header,
+      body,
+      metrics,
+    ]
+
+    solver = Kiwi::Solver.new
+    Layout.solve(page, solver)
+
+    # page
+    header.height.value.should eq(10)
+    header.width.value.should eq(page.width.value)
+    # -> box
+    ancestors.height.value.should eq(10)
+    ancestors.width.value.should eq(page.width.value)
+    # -> box (row)
+    leader_groups.height.value.should eq(230)
+    leader_groups.width.value.should eq(30)
+
+    generations.height.value.should eq(230)
+    generations.width.value.should eq(10)
+
+    graph.height.value.should eq(230)
+    graph.width.value.should eq(160)
+    # <- page
+    metrics.height.value.should eq(50)
+    metrics.width.value.should eq(page.width.value)
   end
 end

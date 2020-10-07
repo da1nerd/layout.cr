@@ -20,7 +20,7 @@ module Layout
       @variable = Kiwi::Variable.new(0)
     end
 
-    def value=(value : Number)
+    def value=(value : Float)
       @variable.state.value = value
       @constant = true
     end
@@ -36,6 +36,13 @@ module Layout
     @x : Primitive
     @y : Primitive
     getter height, width, x, y
+
+    {% for p in [:width, :height, :x, :y] %}
+    # Convenience method to pass a *value* to the {{p}} `Primitive`
+    def {{p.id}}=(value : Float)
+      @{{p.id}}.value = value
+    end
+    {% end %}
   end
 
   struct Block
@@ -48,7 +55,11 @@ module Layout
     property children
 
     def initialize
-      initialize(Layout::Direction::COLUMN, "block")
+      initialize(Layout::Direction::COLUMN)
+    end
+
+    def initialize(layout_direction : Direction)
+      initialize(layout_direction, "block")
     end
 
     def initialize(@layout_direction : Direction, @label : String)
@@ -110,7 +121,7 @@ module Layout
         if is_last
           solver.add_constraint constrain(child.y + child.height == block.y + block.height)
         end
-      elsif block.layout_direction === Direction::COLUMN
+      elsif block.layout_direction === Direction::ROW
         solver.add_constraint constrain(child.y == block.y)
         solver.add_constraint constrain(child.height == block.height)
         solver.add_constraint constrain(child.x >= block.x)
@@ -127,7 +138,7 @@ module Layout
           solver.add_constraint constrain(child.x + child.width == block.x + block.width)
         end
       else
-        raise "Update you're code man!"
+        raise "Update you're code man! That Layout::Direction is not supported."
       end
     end
   end
