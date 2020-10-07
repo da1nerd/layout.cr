@@ -5,11 +5,14 @@ module Layout
   VERSION = "0.1.0"
   extend self
 
+  # The direction in which `Block`'s will flow
   enum Direction
     COLUMN
     ROW
   end
 
+  # A value of measurement.
+  # These appear within `Block`.
   struct Primitive
     @constant : Bool
     @variable : Kiwi::Variable
@@ -20,6 +23,8 @@ module Layout
       @variable = Kiwi::Variable.new(0)
     end
 
+    # Forcebly assign a value.
+    # This causes the `Primitive` to become a constant.
     def value=(value : Float)
       @variable.state.value = value
       @constant = true
@@ -45,6 +50,8 @@ module Layout
     {% end %}
   end
 
+  # A 2 dimensional region without the layout.
+  # You can manually set it's `Primitive` values or allow them to be calculated automatically.
   struct Block
     include Primitives
     @id : String
@@ -72,17 +79,18 @@ module Layout
     end
   end
 
+  # Solves all of the `Primitive` values of a *block* and all of it's children.
   def solve(block : Block, solver : Kiwi::Solver)
     load_block_constraints block, solver
     solver.update_variables
   end
 
-  # Converts a `Primitive` logical comparison to a `Kiwi::Constraint`
+  # Provides a convenient DLS that converts a `Primitive` expression into a `Kiwi::Constraint`
   macro constrain(data)
     {{ data.stringify.gsub(/\b(x|y|width|height)(?!\.)/, "\\0.variable").id }}
   end
 
-  # Loads a block's constraints into the solver
+  # Loads a *block*'s constraints into the solver
   private def load_block_constraints(block : Block, solver : Kiwi::Solver)
     load_primitive(block.width, solver)
     load_primitive(block.height, solver)
@@ -143,7 +151,7 @@ module Layout
     end
   end
 
-  # ILoads a single primitive value into the the system as either a constant
+  # Loads a single primitive value into the the system as either a constant
   # or a variable constrainted to be greater than or equal to 0.
   private def load_primitive(primitive : Primitive, solver : Kiwi::Solver)
     if primitive.constant
