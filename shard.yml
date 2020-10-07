@@ -10,5 +10,5 @@ license: MIT
 
 dependencies:
   kiwi:
-    github: neutrinog/kiwi-crystal
+    github: da1nerd/kiwi-crystal
     version: 0.2.1
