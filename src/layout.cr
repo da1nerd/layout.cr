@@ -8,12 +8,20 @@ module Layout
 
   # The direction in which `Block`'s will flow
   enum Direction
+    # Children will be displayed vertically
     COLUMN
+    # Children will be displayed horizontally
     ROW
+    # TODO: support these other layout directions
+    # Children will have absolute positioning
+    # STACK
+    # Children will be displayed in a grid
+    # GRID
   end
 
   # A value of measurement.
   # These appear within `Block`.
+  # TODO: Support different types of primitives: Pixel, Point, Relative (Percent)
   struct Primitive
     @constant : Bool
     @variable : Kiwi::Variable
@@ -61,8 +69,8 @@ module Layout
     @layout_direction : Direction
     @children : Array(Block)
     @label : String
-    getter label, children, layout_direction, id
-    property children
+    getter children, layout_direction, id
+    property children, label
 
     def initialize
       initialize(Layout::Direction::COLUMN)
