@@ -25,15 +25,19 @@ module Layout
   struct Primitive
     @constant : Bool
     @variable : Kiwi::Variable
-    getter constant, variable
 
     def initialize
       @constant = false
       @variable = Kiwi::Variable.new(0)
     end
 
+    def initialize(name)
+      @constant = false
+      @variable = Kiwi::Variable.new(name)
+    end
+
     # Forcebly assign a value.
-    # This causes the `Primitive` to become a constant.
+    # This causes the primitive to become a constant.
     def value=(value : Float)
       @variable.state.value = value
       @constant = true
@@ -42,26 +46,44 @@ module Layout
     def value : Number
       @variable.state.value
     end
+
+    # Returns the internal constraint variable.
+    # This is used by the constraint solver to calculate the final value.
+    # In you regular code you should use `Primitive#value` instead.
+    def variable
+      @variable
+    end
+
+    # Check if this primitive is a constant.
+    # A primitive becomes constant when you manually set it's value.
+    # e.g. `my_prim.value = 42`
+    def is_constant?
+      @constant
+    end
+
+    # Checks if this primitive is a constant
+    # DEPRECATED: use `Primitive#is_constant?` instead
+    def constant
+      @constant
+    end
   end
 
   # A light wrapp around some primitive stuff.
   # This may end up being merged into `Block`.
   module Primitives
-    @width : Primitive
-    @height : Primitive
-    @x : Primitive
-    @y : Primitive
-    getter height, width, x, y
-
     {% for p in [:width, :height, :x, :y] %}
-    # Convenience method to pass a *value* to the {{p}} `Primitive`
+    @{{p.id}} : Primitive
+
+    getter {{p.id}}
+    
+    # Set {{p.id}} to a constant *value*
     def {{p.id}}=(value : Float)
       @{{p.id}}.value = value
     end
     {% end %}
   end
 
-  # A 2 dimensional region without the layout.
+  # A 2-dimensional region.
   # You can manually set it's `Primitive` values or allow them to be calculated automatically.
   struct Block
     include Primitives
@@ -69,11 +91,15 @@ module Layout
     @layout_direction : Direction
     @children : Array(Block)
     @label : String
-    getter children, layout_direction, id
-    property children, label
+    getter children, layout_direction, id, label
+    property children
 
     def initialize
       initialize(Layout::Direction::COLUMN)
+    end
+
+    def initialize(label : String)
+      initialize(Layout::Direction::COLUMN, label)
     end
 
     def initialize(layout_direction : Direction)
@@ -83,11 +109,28 @@ module Layout
     def initialize(@layout_direction : Direction, @label : String)
       @id = UUID.random.to_s
       @children = [] of Block
-      @width = Primitive.new
-      @height = Primitive.new
-      @x = Primitive.new
-      @y = Primitive.new
+      @width = Primitive.new("#{@label}.width")
+      @height = Primitive.new("#{@label}.height")
+      @x = Primitive.new("#{@label}.x")
+      @y = Primitive.new("#{@label}.y")
     end
+
+    # Enumerate over the block and all of it's children.
+    def each(&block : ::Layout::Block ->)
+      yield self
+      if @children.size > 0
+        @children.each do |child|
+          child.each(&block)
+        end
+      end
+    end
+  end
+
+  def label=(@label)
+    @width.variable.name = "#{@label}.width"
+    @height.variable.name = "#{@label}.height"
+    @x.variable.name = "#{@label}.x"
+    @y.variable.name = "#{@label}.y"
   end
 
   # Solves all of the `Primitive` values of a *block* and all of it's children.
