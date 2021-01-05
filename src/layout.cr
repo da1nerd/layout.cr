@@ -60,12 +60,6 @@ module Layout
     def is_constant?
       @constant
     end
-
-    # Checks if this primitive is a constant
-    # DEPRECATED: use `Primitive#is_constant?` instead
-    def constant
-      @constant
-    end
   end
 
   # A light wrapp around some primitive stuff.
@@ -183,7 +177,7 @@ module Layout
         solver.add_constraint constrain(child.x == block.x)
         solver.add_constraint constrain(child.width == block.width)
         solver.add_constraint constrain(child.y >= block.y)
-        if child.height.constant == false
+        if child.height.is_constant? == false
           # TODO: maximize the value of child.height
         end
         if sibling
@@ -199,7 +193,7 @@ module Layout
         solver.add_constraint constrain(child.y == block.y)
         solver.add_constraint constrain(child.height == block.height)
         solver.add_constraint constrain(child.x >= block.x)
-        if child.width.constant == false
+        if child.width.is_constant? == false
           # TODO: maximize the value of child.width
         end
         if sibling
@@ -220,7 +214,7 @@ module Layout
   # Loads a single primitive value into the the system as either a constant
   # or a variable constrainted to be greater than or equal to 0.
   private def load_primitive(primitive : Primitive, solver : Kiwi::Solver)
-    if primitive.constant
+    if primitive.is_constant?
       solver.add_constraint primitive.variable == primitive.value
     else
       solver.add_constraint primitive.variable >= 0

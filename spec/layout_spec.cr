@@ -3,11 +3,11 @@ require "./spec_helper"
 describe Layout do
   it "switches primitives to constant after changing the value" do
     p = Layout::Primitive.new
-    p.constant.should eq(false)
+    p.is_constant?.should eq(false)
     p.value.should eq(0)
     p.value = 2.0
     p.value.should eq(2)
-    p.constant.should eq(true)
+    p.is_constant?.should eq(true)
   end
 
   it "creates a layout block" do
