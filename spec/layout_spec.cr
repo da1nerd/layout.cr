@@ -25,6 +25,30 @@ describe Layout do
     b.y.value.should eq(0)
   end
 
+  it "solves child block with margin" do
+    parent = Layout::Block.new
+    parent.x = 0f64
+    parent.y = 0f64
+    parent.width = 100f64
+    parent.height = 100f64
+    child = Layout::Block.new
+    child.y = 50f64
+    child.x = 50f64
+    parent.children = [
+      child,
+    ]
+    Layout.solve(parent)
+    parent.width.value.should eq(100)
+    parent.height.value.should eq(100)
+    parent.x.value.should eq(0)
+    parent.y.value.should eq(0)
+
+    child.width.value.should eq(50)
+    child.height.value.should eq(50)
+    child.x.value.should eq(50)
+    child.y.value.should eq(50)
+  end
+
   it "constrains a simple block hierarchy" do
     screen = Layout::Block.new
     screen.width = 300f64

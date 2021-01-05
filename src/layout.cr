@@ -174,8 +174,11 @@ module Layout
 
       # layout constraints
       if block.layout_direction === Direction::COLUMN
-        solver.add_constraint constrain(child.x == block.x)
-        solver.add_constraint constrain(child.width == block.width)
+        solver.add_constraint constrain(child.x == block.x).strength = Kiwi::Strength::STRONG
+        solver.add_constraint constrain(child.width == block.width).strength = Kiwi::Strength::MEDIUM
+        if child.x.is_constant?
+          solver.add_constraint constrain(child.width <= block.width - child.x).strength = Kiwi::Strength::STRONG
+        end
         solver.add_constraint constrain(child.y >= block.y)
         if child.height.is_constant? == false
           # TODO: maximize the value of child.height
@@ -184,14 +187,19 @@ module Layout
           solver.add_constraint constrain(child.y == sibling.y + sibling.height)
         else
           # this is the first child
-          solver.add_constraint constrain(child.y == block.y)
+          constraint = constrain(child.y == block.y)
+          constraint.strength = Kiwi::Strength::STRONG
+          solver.add_constraint constraint
         end
         if is_last
           solver.add_constraint constrain(child.y + child.height == block.y + block.height)
         end
       elsif block.layout_direction === Direction::ROW
-        solver.add_constraint constrain(child.y == block.y)
-        solver.add_constraint constrain(child.height == block.height)
+        solver.add_constraint constrain(child.y == block.y).strength = Kiwi::Strength::STRONG
+        solver.add_constraint constrain(child.height == block.height).strength = Kiwi::Strength::MEDIUM
+        if child.y.is_constant?
+          solver.add_constraint constrain(child.height <= block.height - child.y).strength = Kiwi::Strength::STRONG
+        end
         solver.add_constraint constrain(child.x >= block.x)
         if child.width.is_constant? == false
           # TODO: maximize the value of child.width
@@ -200,7 +208,9 @@ module Layout
           solver.add_constraint constrain(child.x == sibling.x + sibling.width)
         else
           # this is the first child
-          solver.add_constraint constrain(child.x == block.x)
+          constraint = constrain(child.x == block.x)
+          constraint.strength = Kiwi::Strength::STRONG
+          solver.add_constraint constraint
         end
         if is_last
           solver.add_constraint constrain(child.x + child.width == block.x + block.width)
