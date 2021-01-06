@@ -6,34 +6,54 @@ module Layout
   VERSION = "0.1.0"
   extend self
 
-  # The direction in which `Block`'s will flow
-  enum Direction
-    # Children will be displayed vertically
-    COLUMN
-    # Children will be displayed horizontally
-    ROW
-    # TODO: support these other layout directions
-    # Children will have absolute positioning
-    # STACK
-    # Children will be displayed in a grid
-    # GRID
+  struct Pixel(T)
+    getter value
+
+    def initialize(@value : T)
+    end
+  end
+
+  struct Point(T)
+    getter value
+
+    def initialize(@value : T)
+    end
+  end
+
+  module NumberMixin
+    struct ::Number
+      # Screen pixels
+      def px : Layout::Pixel
+        Layout::Pixel.new(self)
+      end
+
+      # Screen point
+      def pt : Layout::Point
+        Layout::Point.new(self)
+      end
+    end
   end
 
   # A value of measurement.
   # These appear within `Block`.
   # TODO: Support different types of primitives: Pixel, Point, Relative (Percent)
-  struct Primitive
+  class Primitive
     @constant : Bool
     @variable : Kiwi::Variable
+    @constraints : Array(Kiwi::Constraint)
+
+    getter constraints
 
     def initialize
       @constant = false
       @variable = Kiwi::Variable.new(0)
+      @constraints = [] of Kiwi::Constraint
     end
 
     def initialize(name)
       @constant = false
       @variable = Kiwi::Variable.new(name)
+      @constraints = [] of Kiwi::Constraint
     end
 
     # Forcebly assign a value.
@@ -54,11 +74,62 @@ module Layout
       @variable
     end
 
-    # Check if this primitive is a constant.
-    # A primitive becomes constant when you manually set it's value.
-    # e.g. `my_prim.value = 42`
-    def is_constant?
-      @constant
+    # convert primitives to Kiwi variables
+    {% for op in [:+, :-, :*] %}
+      def {{op.id}}(primitive : Layout::Primitive)
+        self.{{op.id}} primitive.variable
+      end
+    {% end %}
+
+    {% for op in [:eq, :gte, :lte] %}
+      def {{op.id}}(primitive : Layout::Primitive, strength)
+        {{op.id}}(primitive.variable, strength)
+      end
+    {% end %}
+
+    def eq(expression) : Kiwi::Constraint
+      eq(expression, Kiwi::Strength::REQUIRED)
+    end
+
+    def eq(expression, strength) : Kiwi::Constraint
+      c = @variable == expression
+      c.strength = strength
+      @constraints << c
+      c
+    end
+
+    def gte(expression) : Kiwi::Constraint
+      gte(expression, Kiwi::Strength::REQUIRED)
+    end
+
+    def gte(expression, strength) : Kiwi::Constraint
+      c = @variable >= expression
+      c.strength = strength
+      @constraints << c
+      c
+    end
+
+    def lte(expression) : Kiwi::Constraint
+      lte(expression, Kiwi::Strength::REQUIRED)
+    end
+
+    def lte(expression, strength) : Kiwi::Constraint
+      c = @variable <= expression
+      c.strength = strength
+      @constraint << c
+      c
+    end
+
+    def +(expression)
+      @variable + expression
+    end
+
+    def *(expression)
+      @variable * expression
+    end
+
+    def -(expression)
+      @variable - expression
     end
   end
 
@@ -66,14 +137,22 @@ module Layout
   # This may end up being merged into `Block`.
   module Primitives
     {% for p in [:width, :height, :x, :y] %}
-    @{{p.id}} : Primitive
+      @{{p.id}} : Primitive
 
-    getter {{p.id}}
-    
-    # Set {{p.id}} to a constant *value*
-    def {{p.id}}=(value : Float)
-      @{{p.id}}.value = value
-    end
+      getter {{p.id}}
+      
+      # Set {{p.id}} to a constant *value*
+      # DEPRECATED use the logical operators instead.
+      def {{p.id}}=(value : Float)
+        @{{p.id}}.value = value
+        puts "\#{{p.id}}= is deprecated. You should use a logical operator instead."
+      end
+
+      # def {{p.id}}==(expression : Kiwi::Expression)
+      #   c = @{{p.id}}.variable == expression
+      #   @{{p.id}}.constraints << c
+      #   c
+      # end
     {% end %}
   end
 
@@ -81,27 +160,16 @@ module Layout
   # You can manually set it's `Primitive` values or allow them to be calculated automatically.
   class Block
     include Primitives
-    @id : String
-    @layout_direction : Direction
     @children : Array(Block)
     @label : String
-    getter children, layout_direction, id, label
+    getter children, label
     property children
 
     def initialize
-      initialize(Layout::Direction::COLUMN)
+      initialize(UUID.random.to_s)
     end
 
-    def initialize(label : String)
-      initialize(Layout::Direction::COLUMN, label)
-    end
-
-    def initialize(layout_direction : Direction)
-      initialize(layout_direction, "block")
-    end
-
-    def initialize(@layout_direction : Direction, @label : String)
-      @id = UUID.random.to_s
+    def initialize(@label : String)
       @children = [] of Block
       @width = Primitive.new("#{@label}.width")
       @height = Primitive.new("#{@label}.height")
@@ -118,13 +186,15 @@ module Layout
         end
       end
     end
-  end
 
-  def label=(@label)
-    @width.variable.name = "#{@label}.width"
-    @height.variable.name = "#{@label}.height"
-    @x.variable.name = "#{@label}.x"
-    @y.variable.name = "#{@label}.y"
+    # Re-assign the label of this block.
+    # The *label* is useful when debugging
+    def label=(@label)
+      @width.variable.name = "#{@label}.width"
+      @height.variable.name = "#{@label}.height"
+      @x.variable.name = "#{@label}.x"
+      @y.variable.name = "#{@label}.y"
+    end
   end
 
   # Solves all of the `Primitive` values of a *block* and all of it's children.
@@ -140,88 +210,42 @@ module Layout
   end
 
   # Provides a convenient DLS that converts a `Primitive` expression into a `Kiwi::Constraint`
-  #
+  # DEPRECATED use `Primitive` logical operators instead.
   # ## Example
   #
   # ```
   # constrain block1.x >= block2.x
   # ```
-  macro constrain(data)
-    {{ data.stringify.gsub(/\b(x|y|width|height)(?!\.)/, "\\0.variable").id }}
+  macro constrain(expression)
+    {% exp = expression.stringify %}
+    {% if exp.includes?(">=") %}
+      {% parts = exp.split(">=") %}
+
+    {% elsif exp.includes?("<=") %}
+      {% parts = exp.split("<=") %}
+
+    {% elsif exp.includes?("==") %}
+      {% parts = exp.split("==") %}
+
+    {% else %}
+      {% raise "Invalid constraint expression #{exp}" %}
+    {% end %}
+    {{ exp.gsub(/\b(x|y|width|height)(?!\.)/, "\\0.variable").id }}
   end
 
   # Loads a *block*'s constraints into the solver
   private def load_block_constraints(block : Block, solver : Kiwi::Solver)
-    load_primitive(block.width, solver)
-    load_primitive(block.height, solver)
-    load_primitive(block.x, solver)
-    load_primitive(block.y, solver)
+    load_primitive_constraints(block.x, solver)
+    load_primitive_constraints(block.y, solver)
+    load_primitive_constraints(block.width, solver)
+    load_primitive_constraints(block.height, solver)
 
     0.upto(block.children.size - 1) do |i|
-      sibling : Block? = block.children[i - 1] if i > 0
-      child : Block = block.children[i]
-      is_first : Bool = i == 0
-      is_last : Bool = i == block.children.size - 1
-
-      load_block_constraints(child, solver)
-
-      # constrain child
-
-      # baseline constraints
-      solver.add_constraint constrain(child.x >= block.x)
-      solver.add_constraint constrain(child.y >= block.y)
-      solver.add_constraint constrain(child.height <= block.height)
-      solver.add_constraint constrain(child.width <= block.width)
-
-      # layout constraints
-      if block.layout_direction === Direction::COLUMN
-        solver.add_constraint constrain(child.x == block.x).strength = Kiwi::Strength::STRONG
-        solver.add_constraint constrain(child.width == block.width).strength = Kiwi::Strength::STRONG
-        solver.add_constraint constrain(child.y >= block.y).strength = Kiwi::Strength::MEDIUM
-        if child.height.is_constant? == false
-          # TODO: maximize the value of child.height
-        end
-        if sibling
-          solver.add_constraint constrain(child.y == sibling.y + sibling.height).strength = Kiwi::Strength::STRONG
-        else
-          # this is the first child
-          solver.add_constraint constrain(child.y == block.y).strength = Kiwi::Strength::STRONG
-        end
-        if is_last
-          solver.add_constraint constrain(child.y + child.height == block.y + block.height).strength = Kiwi::Strength::STRONG
-        end
-      elsif block.layout_direction === Direction::ROW
-        solver.add_constraint constrain(child.y == block.y)#.strength = Kiwi::Strength::STRONG
-        solver.add_constraint constrain(child.height == block.height)#.strength = Kiwi::Strength::STRONG
-        # if child.y.is_constant?
-        #   solver.add_constraint constrain(child.height <= block.height - child.y).strength = Kiwi::Strength::STRONG
-        # end
-        solver.add_constraint constrain(child.x >= block.x)
-        if child.width.is_constant? == false
-          # TODO: maximize the value of child.width
-        end
-        if sibling
-          solver.add_constraint constrain(child.x == sibling.x + sibling.width).strength = Kiwi::Strength::STRONG
-        else
-          # this is the first child
-          solver.add_constraint constrain(child.x == block.x).strength = Kiwi::Strength::STRONG
-        end
-        if is_last
-          solver.add_constraint constrain(child.x + child.width == block.x + block.width)
-        end
-      else
-        raise "Update you're code man! That Layout::Direction is not supported."
-      end
+      load_block_constraints(block.children[i], solver)
     end
   end
 
-  # Loads a single primitive value into the the system as either a constant
-  # or a variable constrainted to be greater than or equal to 0.
-  private def load_primitive(primitive : Primitive, solver : Kiwi::Solver)
-    if primitive.is_constant?
-      solver.add_constraint primitive.variable == primitive.value
-    else
-      solver.add_constraint primitive.variable >= 0
-    end
+  private def load_primitive_constraints(primitive : Layout::Primitive, solver : Kiwi::Solver)
+    primitive.constraints.each { |c| solver.add_constraint(c) }
   end
 end
