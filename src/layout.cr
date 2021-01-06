@@ -79,7 +79,7 @@ module Layout
 
   # A 2-dimensional region.
   # You can manually set it's `Primitive` values or allow them to be calculated automatically.
-  struct Block
+  class Block
     include Primitives
     @id : String
     @layout_direction : Direction
@@ -160,6 +160,7 @@ module Layout
     0.upto(block.children.size - 1) do |i|
       sibling : Block? = block.children[i - 1] if i > 0
       child : Block = block.children[i]
+      is_first : Bool = i == 0
       is_last : Bool = i == block.children.size - 1
 
       load_block_constraints(child, solver)
@@ -175,42 +176,35 @@ module Layout
       # layout constraints
       if block.layout_direction === Direction::COLUMN
         solver.add_constraint constrain(child.x == block.x).strength = Kiwi::Strength::STRONG
-        solver.add_constraint constrain(child.width == block.width).strength = Kiwi::Strength::MEDIUM
-        if child.x.is_constant?
-          solver.add_constraint constrain(child.width <= block.width - child.x).strength = Kiwi::Strength::STRONG
-        end
-        solver.add_constraint constrain(child.y >= block.y)
+        solver.add_constraint constrain(child.width == block.width).strength = Kiwi::Strength::STRONG
+        solver.add_constraint constrain(child.y >= block.y).strength = Kiwi::Strength::MEDIUM
         if child.height.is_constant? == false
           # TODO: maximize the value of child.height
         end
         if sibling
-          solver.add_constraint constrain(child.y == sibling.y + sibling.height)
+          solver.add_constraint constrain(child.y == sibling.y + sibling.height).strength = Kiwi::Strength::STRONG
         else
           # this is the first child
-          constraint = constrain(child.y == block.y)
-          constraint.strength = Kiwi::Strength::STRONG
-          solver.add_constraint constraint
+          solver.add_constraint constrain(child.y == block.y).strength = Kiwi::Strength::STRONG
         end
         if is_last
-          solver.add_constraint constrain(child.y + child.height == block.y + block.height)
+          solver.add_constraint constrain(child.y + child.height == block.y + block.height).strength = Kiwi::Strength::STRONG
         end
       elsif block.layout_direction === Direction::ROW
-        solver.add_constraint constrain(child.y == block.y).strength = Kiwi::Strength::STRONG
-        solver.add_constraint constrain(child.height == block.height).strength = Kiwi::Strength::MEDIUM
-        if child.y.is_constant?
-          solver.add_constraint constrain(child.height <= block.height - child.y).strength = Kiwi::Strength::STRONG
-        end
+        solver.add_constraint constrain(child.y == block.y)#.strength = Kiwi::Strength::STRONG
+        solver.add_constraint constrain(child.height == block.height)#.strength = Kiwi::Strength::STRONG
+        # if child.y.is_constant?
+        #   solver.add_constraint constrain(child.height <= block.height - child.y).strength = Kiwi::Strength::STRONG
+        # end
         solver.add_constraint constrain(child.x >= block.x)
         if child.width.is_constant? == false
           # TODO: maximize the value of child.width
         end
         if sibling
-          solver.add_constraint constrain(child.x == sibling.x + sibling.width)
+          solver.add_constraint constrain(child.x == sibling.x + sibling.width).strength = Kiwi::Strength::STRONG
         else
           # this is the first child
-          constraint = constrain(child.x == block.x)
-          constraint.strength = Kiwi::Strength::STRONG
-          solver.add_constraint constraint
+          solver.add_constraint constrain(child.x == block.x).strength = Kiwi::Strength::STRONG
         end
         if is_last
           solver.add_constraint constrain(child.x + child.width == block.x + block.width)
