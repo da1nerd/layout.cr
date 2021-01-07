@@ -25,12 +25,12 @@ module Layout
 
     # Forcebly assign a value.
     # This causes the primitive to become a constant.
-    def value=(value : Float)
+    def value=(value)
       @variable.state.value = value
       @constant = true
     end
 
-    def value : Number
+    def value
       @variable.state.value
     end
 

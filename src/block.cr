@@ -7,14 +7,13 @@ module Layout
   class Block
     @children : Array(Block)
     @label : String
-    getter children, label
+    @width : Primitive
+    @height : Primitive
+    @x : Primitive
+    @y : Primitive
+
+    getter children, label, width, height, x, y
     property children
-
-    {% for p in [:width, :height, :x, :y] %}
-      @{{p.id}} : Primitive
-
-      getter {{p.id}}
-    {% end %}
 
     def initialize
       initialize(UUID.random.to_s)
@@ -41,9 +40,10 @@ module Layout
     # Re-assign the label of this block.
     # The *label* is useful when debugging
     def label=(@label)
-      {% for p in [:width, :height, :x, :y] %}
-        @{{p.id}}.variable.name = "#{@label}.{{p.id}}"
-      {% end %}
+      @width.variable.name = "#{@label}.width"
+      @height.variable.name = "#{@label}.height"
+      @x.variable.name = "#{@label}.x"
+      @y.variable.name = "#{@label}.y"
     end
   end
 end
