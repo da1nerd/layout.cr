@@ -1,5 +1,5 @@
 require "./units/pixel.cr"
-require "./units/density_independant_pixel.cr"
+require "./units/density_pixel.cr"
 
 module Layout
   # Adds some methods to numbers that allow you to more easily create a screen unit
@@ -11,8 +11,8 @@ module Layout
       end
 
       # Density independant pixel
-      def dp : Layout::DensityIndependantPixel
-        Layout::DensityIndependantPixel.new(self)
+      def dp : Layout::DensityPixel
+        Layout::DensityPixel.new(self)
       end
     end
   end

@@ -87,16 +87,6 @@ module Layout
       c
     end
 
-    def +(expression)
-      @variable + expression
-    end
-
-    def *(expression)
-      @variable * expression
-    end
-
-    def -(expression)
-      @variable - expression
-    end
+    delegate :+, :/, :*, :-, to: @variable
   end
 end

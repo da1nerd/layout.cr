@@ -14,7 +14,7 @@ module Layout
 
   # :ditto:
   def solve(block : Block, solver : Kiwi::Solver)
-    load_block_constraints block, solver
+    block.each_constraint { |c| solver.add_constraint(c) }
     solver.update_variables
   end
 
@@ -39,25 +39,8 @@ module Layout
     {% else %}
       {% raise "Invalid constraint expression #{exp}" %}
     {% end %}
-    
+
     # old code
     {{ exp.gsub(/\b(x|y|width|height)(?!\.)/, "\\0.variable").id }}
-  end
-
-  # Loads a *block*'s constraints into the *solver*.
-  private def load_block_constraints(block : Block, solver : Kiwi::Solver)
-    load_primitive_constraints(block.x, solver)
-    load_primitive_constraints(block.y, solver)
-    load_primitive_constraints(block.width, solver)
-    load_primitive_constraints(block.height, solver)
-
-    0.upto(block.children.size - 1) do |i|
-      load_block_constraints(block.children[i], solver)
-    end
-  end
-
-  # Loads all of the constraints of the *primitive* into the *solver*.
-  private def load_primitive_constraints(primitive : Layout::Primitive, solver : Kiwi::Solver)
-    primitive.constraints.each { |c| solver.add_constraint(c) }
   end
 end
