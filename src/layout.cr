@@ -116,7 +116,7 @@ module Layout
     def lte(expression, strength) : Kiwi::Constraint
       c = @variable <= expression
       c.strength = strength
-      @constraint << c
+      @constraints << c
       c
     end
 
