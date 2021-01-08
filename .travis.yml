@@ -1,6 +1,9 @@
 language: crystal
+cache: shards
+crystal:
+  - latest
+  - nightly
 
-# Uncomment the following if you'd like Travis to run specs and check code formatting
-# script:
-#   - crystal spec
-#   - crystal tool format --check
+script:
+  - crystal spec -D ci --error-trace
+  - crystal tool format --check
