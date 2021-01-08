@@ -1,4 +1,6 @@
 # layout
+[![GitHub release](https://img.shields.io/github/release/da1nerd/layout.cr.svg)](https://github.com/da1nerd/layout.cr/releases)
+[![Build Status](https://travis-ci.org/da1nerd/layout.cr.svg?branch=main)](https://travis-ci.org/da1nerd/layout.cr)
 
 This is a constraint based layout framework. Or more simply put, this generates the measurements for a visual layout which could then be used for:
 
