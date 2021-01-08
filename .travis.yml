@@ -13,4 +13,3 @@ deploy:
   site: 402ebf18-5ad8-4a29-8423-afb3b918b203
   dir: docs
   prod: true
-  edge: true
