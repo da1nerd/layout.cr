@@ -2,7 +2,7 @@ require "kiwi"
 
 module Layout
   # A constrainable value of measurement.
-  # 
+  #
   class Primitive
     @variable : Kiwi::Variable
     @constraints : Array(Kiwi::Constraint)

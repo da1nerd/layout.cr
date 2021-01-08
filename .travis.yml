@@ -7,3 +7,6 @@ crystal:
 script:
   - crystal spec -D ci --error-trace
   - crystal tool format --check
+
+after_success:
+  - if [[ "$TRAVIS_BRANCH" == "main" ]]; then crystal docs && netlify deploy --prod; fi

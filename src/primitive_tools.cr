@@ -4,17 +4,17 @@ require "./primitive.cr"
 module Layout
   # Tools for using primitives
   module PrimitiveTools
-
     # Defines a new primitive.
     # This will generate several helper methods so you can properly initialize your primitives.
-    # 
+    #
     # ### Example
     # Here we create a sample Point class that has an `x` and `y` primitive.
     # Now, after setting some contraints we can load the constraints into `Kiwi::Solver` and find the final values.
-    # 
+    #
     # ```
     # require "layout/primitive_tools"
     # require "kiwi"
+    #
     # class Point
     #   include PrimitiveTools
     #   primitive :x
