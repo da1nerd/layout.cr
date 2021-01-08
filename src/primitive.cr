@@ -1,42 +1,34 @@
 require "kiwi"
 
 module Layout
-  # A value of measurement.
-  # These appear within `Block`.
-  # TODO: Support different types of primitives: Pixel, Point, Relative (Percent)
+  # A constrainable value of measurement.
+  # 
   class Primitive
-    @constant : Bool
     @variable : Kiwi::Variable
     @constraints : Array(Kiwi::Constraint)
 
+    # The constraints on this primitive.
+    # This is used internally to load the constraints into the constraint solver.
     getter constraints
 
     def initialize
-      @constant = false
       @variable = Kiwi::Variable.new(0)
       @constraints = [] of Kiwi::Constraint
     end
 
     def initialize(name)
-      @constant = false
       @variable = Kiwi::Variable.new(name)
       @constraints = [] of Kiwi::Constraint
     end
 
-    # Forcebly assign a value.
-    # This causes the primitive to become a constant.
-    def value=(value)
-      @variable.state.value = value
-      @constant = true
-    end
-
+    # The final calculated value of the primitive.
+    # This is the value you'll use after solving the constraints.
     def value
       @variable.state.value
     end
 
     # Returns the internal constraint variable.
     # This is used by the constraint solver to calculate the final value.
-    # In you regular code you should use `Primitive#value` instead.
     def variable
       @variable
     end

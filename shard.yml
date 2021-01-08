@@ -1,5 +1,5 @@
 name: layout
-version: 0.1.0
+version: 0.2.0
 
 authors:
   - Joel Lonbeck <joel@neutrinographics.com>
@@ -10,5 +10,5 @@ license: MIT
 
 dependencies:
   kiwi:
-    github: da1nerd/kiwi-crystal
+    github: da1nerd/kiwi.cr
     branch: master

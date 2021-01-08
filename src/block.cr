@@ -1,49 +1,60 @@
 require "uuid"
-require "./primitive.cr"
+require "./primitive_tools.cr"
 
 module Layout
   # A 2-dimensional region within the layout.
-  # You can manually set it's `Primitive` values or allow them to be calculated automatically.
-  # TODO: the code here could probably be simplified with macros
+  # You can constrain the different `Primitive`s on a block
+  # in order to properly position it.
+  #
+  # ### Example
+  #
+  # The follow will create a 100x100 square that is offset
+  # from the top left corner of the screen by half it's width.
+  # ```
+  # region = Block.new
+  # region.height.eq 100
+  # region.width.eq 100
+  # region.top.eq region.width / 2
+  # region.left.eq region.width / 2
+  # ```
   class Block
+    include PrimitiveTools
     @children : Array(Block)
     @label : String
-    @width : Primitive
-    @height : Primitive
-    @right : Primitive
-    @left : Primitive
-    @top : Primitive
-    @bottom : Primitive
-    @center_x : Primitive
-    @center_y : Primitive
+    primitive :height
+    primitive :width
+    primitive :left
+    primitive :right
+    primitive :top
+    primitive :bottom
+    primitive :center_x
+    primitive :center_y
 
-    getter children, label, width, height, right, left, top, bottom, center_x, center_y
+    # This is a unique or manually set identifier to help in debugging
+    getter label
+
+    # You can encapsulate blocks inside of each other as children.
+    # This makes it easier to compose complex layout blocks.
     property children
 
     def initialize
       initialize(UUID.random.to_s)
     end
 
+    # An alias to the `#left` primitive
     def x
       @left
     end
 
+    # An alias to the `#top` primitive
     def y
       @top
     end
 
+    # Initialize with a *label* for easier debugging.
     def initialize(@label : String)
       @children = [] of Block
-      @width = Primitive.new("#{@label}.width")
-      @height = Primitive.new("#{@label}.height")
-
-      @center_x = Primitive.new("#{@label}.center_x")
-      @center_y = Primitive.new("#{@label}.center_y")
-
-      @right = Primitive.new("#{@label}.right")
-      @left = Primitive.new("#{@label}.left")
-      @top = Primitive.new("#{@label}.top")
-      @bottom = Primitive.new("#{@label}.bottom")
+      label_primitives @label
 
       # set up some pre-constraints
       @right.eq @left + @width
@@ -52,7 +63,7 @@ module Layout
       @center_y.eq @top + (@height / 2)
     end
 
-    # Enumerate over the block and all of it's children.
+    # Enumerate over all blocks in this block's hierarchy.
     def each(&block : Block ->)
       yield self
       @children.each do |child|
@@ -60,16 +71,11 @@ module Layout
       end
     end
 
-    # Enumerate over all of the constraints in this block hierarchy
+    # Enumerate over all constraints in this block's hierarchy
     def each_constraint(&block : Kiwi::Constraint ->)
-      @width.constraints.each { |c| yield c }
-      @height.constraints.each { |c| yield c }
-      @center_x.constraints.each { |c| yield c }
-      @center_y.constraints.each { |c| yield c }
-      @right.constraints.each { |c| yield c }
-      @left.constraints.each { |c| yield c }
-      @top.constraints.each { |c| yield c }
-      @bottom.constraints.each { |c| yield c }
+      self.primitives.each do |p|
+        p.constraints.each { |c| yield c }
+      end
 
       @children.each do |child|
         child.each_constraint(&block)
@@ -77,16 +83,10 @@ module Layout
     end
 
     # Re-assign the label of this block.
-    # The *label* is useful when debugging
+    # Providing a label helps to provide context when debugging.
+    # You can also add a label in `#initialize`
     def label=(@label)
-      @width.variable.name = "#{@label}.width"
-      @height.variable.name = "#{@label}.height"
-      @center_x.variable.name = "#{@label}.center_x"
-      @center_y.variable.name = "#{@label}.center_y"
-      @right.variable.name = "#{@label}.right"
-      @left.variable.name = "#{@label}.left"
-      @top.variable.name = "#{@label}.top"
-      @bottom.variable.name = "#{@label}.bottom"
+      label_primitives(@label)
     end
   end
 end
