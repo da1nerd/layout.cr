@@ -30,7 +30,7 @@ describe Layout do
 
     drawer.height.eq page.height
     drawer.width.eq 300
-    drawer.left.eq 0, Kiwi::Strength::WEAK
+    drawer.left.eq 0, :WEAK
 
     content.height.eq page.height
     content.width.gte 300
@@ -39,8 +39,8 @@ describe Layout do
 
     page.left.eq 0
     page.top.eq 0
-    page.width.eq 600, Kiwi::Strength::STRONG
-    page.height.eq 600, Kiwi::Strength::STRONG
+    page.width.eq 600, :STRONG
+    page.height.eq 600, :STRONG
 
     page.children = [
       drawer,

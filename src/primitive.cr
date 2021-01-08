@@ -42,41 +42,61 @@ module Layout
 
     {% for op in [:eq, :gte, :lte] %}
       def {{op.id}}(primitive : Layout::Primitive, strength)
-        {{op.id}}(primitive.variable, strength)
+        {{op.id}}(primitive.variable, read_strength(strength))
       end
     {% end %}
 
     def eq(expression) : Kiwi::Constraint
-      eq(expression, Kiwi::Strength::REQUIRED)
+      eq(expression, :REQUIRED)
     end
 
     def eq(expression, strength) : Kiwi::Constraint
       c = @variable == expression
-      c.strength = strength
+      c.strength = read_strength(strength)
       @constraints << c
       c
     end
 
     def gte(expression) : Kiwi::Constraint
-      gte(expression, Kiwi::Strength::REQUIRED)
+      gte(expression, :REQUIRED)
     end
 
     def gte(expression, strength) : Kiwi::Constraint
       c = @variable >= expression
-      c.strength = strength
+      c.strength = read_strength(strength)
       @constraints << c
       c
     end
 
     def lte(expression) : Kiwi::Constraint
-      lte(expression, Kiwi::Strength::REQUIRED)
+      lte(expression, :REQUIRED)
     end
 
     def lte(expression, strength) : Kiwi::Constraint
       c = @variable <= expression
-      c.strength = strength
+      c.strength = read_strength(strength)
       @constraints << c
       c
+    end
+
+    # translates a symbol to a `Kiwi::Strength`
+    private def read_strength(strength : Symbol)
+      case strength
+      when :REQUIRED
+        Kiwi::Strength::REQUIRED
+      when :STRONG
+        Kiwi::Strength::STRONG
+      when :MEDIUM
+        Kiwi::Strength::MEDIUM
+      when :WEAK
+        Kiwi::Strength::WEAK
+      else
+        raise "#{strength} is not a supported strength."
+      end
+    end
+
+    private def read_strength(strength : Float64)
+      strength
     end
 
     delegate :+, :/, :*, :-, to: @variable
