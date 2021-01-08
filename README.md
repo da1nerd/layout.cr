@@ -24,28 +24,33 @@ dependencies:
 ```crystal
 require "layout"
 
-screen = Layout::Block.new(Layout::Direction::COLUMN)
-screen.width = 300f64
-screen.height = 300f64
-screen.x = 0f64
-screen.y = 0f64
+screen = Layout::Block.new
+screen.width.eq 300
+screen.height.eq 300
 
 top_block = Layout::Block.new
-top_block.height = 100f64
+top_block.height.eq 100
+top_block.width.eq screen.width
 
 bottom_block = Layout::Block.new
+bottom_block.top.eq top_block.bottom
+bottom_block.width.eq screen.width
+bottom_block.bottom.eq screen.bottom
 
 screen.children = [top_block, bottom_block]
 
 Layout.solve(screen)
 
 # go use the calculated dimensions!
-bottom_block.height.value # => 200f64
+bottom_block.height.value # => 200
 ```
 
 With the above code you'd have all the necessary dimensions to draw this stack of blocks.
 
 ![image](https://user-images.githubusercontent.com/166412/95360139-2ecb0980-08f5-11eb-9b1a-d8bf144d52d7.png)
+
+> Note: there's nothing special about `screen.children = [top_block, bottom_block]`
+This simply combines the blocks into a single one so we can easily pass it to the solver.
 
 ## Development
 
