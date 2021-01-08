@@ -8,6 +8,9 @@ script:
   - crystal spec -D ci --error-trace
   - crystal tool format --check
 
+after_success:
+  - crystal docs
+
 deploy:
   provider: netlify
   site: 402ebf18-5ad8-4a29-8423-afb3b918b203
