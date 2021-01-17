@@ -37,7 +37,7 @@ module Layout
       getter {{ name.id }}
 
       # Returns all of the defined primitives
-      private def primitives
+      def primitives
         {% if @type.methods.map(&.name).includes?(:primitives.id) %}
           ([@{{ name.id }}] + previous_def).uniq
         {% else %}
