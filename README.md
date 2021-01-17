@@ -66,4 +66,4 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [Joel Lonbeck](https://github.com/da1nerd) - creator and maintainer
+- [Joel](https://github.com/da1nerd) - creator and maintainer
